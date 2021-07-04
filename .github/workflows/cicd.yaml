@@ -1,0 +1,28 @@
+on:
+  push:
+    branches:
+      - master
+
+name: Upgrade package version
+
+jobs:
+  deploy:
+    name: Upgrade version
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 14
+
+    - name: Install dependencies
+      run: npm ci -quiet
+
+    - name: Run semantic release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx semantic-release
