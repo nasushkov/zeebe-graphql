@@ -1,5 +1,5 @@
 module.exports = {
-    branches: ['master'],
+    branches: ['master', 'main'],
     repositoryUrl: 'git@github.com:nasushkov/zeebe-graphql.git',
     plugins: [
       // analyze commits with conventional-changelog
