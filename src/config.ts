@@ -1,3 +1,4 @@
+import { AuthType } from './auth';
 const nconf = require('nconf');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
@@ -8,6 +9,7 @@ nconf
     .env({
         separator: '__',
         whitelist: [
+            'AUTH_TYPE',
             'DEBUG',
             'FAIL_ON_CONNECTION',
             'GRAPHQL_HOST',
@@ -15,12 +17,14 @@ nconf
             'MAX_ACTIVE_JOBS',
             'SYSTEM_ACCOUNT_ID',
             'TASK_TIMEOUT',
+            'X_API_KEY',
             'ZEEBE_GATEWAY_ADDRESS',
             'ZEEBE_TASK_TYPE',
             'ZEEBE_TLS',
         ],
     })
     .defaults({
+        AUTH_TYPE: AuthType.bearer,
         DEBUG: 'false',
         FAIL_ON_CONNECTION: 'true',
         GRAPHQL_HOST: 'http://localhost:4000/graphql',
@@ -28,6 +32,7 @@ nconf
         MAX_ACTIVE_JOBS: 512,
         SYSTEM_ACCOUNT_ID: '4ca30e03-15ce-4a44-9f03-0fba2d76bd33',
         TASK_TIMEOUT: 60000,
+        X_API_KEY: '',
         ZEEBE_GATEWAY_ADDRESS: 'localhost:26500',
         ZEEBE_TASK_TYPE: 'graphql-service',
         ZEEBE_TLS: 'false',
