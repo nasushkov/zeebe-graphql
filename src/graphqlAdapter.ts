@@ -1,21 +1,17 @@
-import { ZBClient, Job, CompleteFn, ZBWorker } from 'zeebe-node';
-
+import { ZBClient, CompleteFn, ZBWorker } from 'zeebe-node';
 import { red, green } from 'colors';
-
-import { sign } from 'jsonwebtoken';
 import { ApolloClient, ApolloLink, createHttpLink, InMemoryCache, gql } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
-
 import { GraphQLError } from 'graphql';
 import 'cross-fetch/polyfill';
+
+import { IAuthStrategy, getAuthStategy } from './auth';
 
 export class AdapterSetupOptions {
     debug: boolean;
     failOnConnection: boolean;
     graphQLGatewayAddress: string;
-    jwtSecret: string;
     maxActiveJobs: number;
-    systemAccountId: string;
     taskTimeout: number;
     zeebeGatewayAddress: string;
     zeebeTls: boolean;
@@ -26,10 +22,12 @@ export class ZeebeGraphqlAdapter {
     private options: AdapterSetupOptions;
     private zeebeClient: ZBClient;
     private zeebeWorker: ZBWorker<any, any, any>;
+    private authStrategy: IAuthStrategy;
 
     public constructor(options: AdapterSetupOptions) {
         this.options = options;
         this.connectionErrorHandler = this.connectionErrorHandler.bind(this);
+        this.authStrategy = getAuthStategy();
     }
 
     private async graphqlTaskHandler(job: any, complete: CompleteFn<any>): Promise<any> {
@@ -54,23 +52,7 @@ export class ZeebeGraphqlAdapter {
                 console.debug('Setting up Apollo Client for Zeebe adapter...');
             }
 
-            const authMiddlewareLink = new ApolloLink((operation, forward) => {
-                const jwt = sign(
-                    {
-                        id: this.options.systemAccountId,
-                        isCustomer: false,
-                    },
-                    this.options.jwtSecret,
-                );
-                // add the authorization to the headers
-                operation.setContext({
-                    headers: {
-                        authorization: `Bearer ${jwt}`,
-                    },
-                });
-
-                return forward(operation);
-            });
+            const authMiddlewareLink = new ApolloLink(this.authStrategy.handleRequest);
 
             const errorAfterwareLink = onError(({ operation, graphQLErrors, networkError }) => {
                 let errorStr = `Error while calling ${operation.operationName}. `;
